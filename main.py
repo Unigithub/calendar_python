@@ -1,9 +1,5 @@
 import tkinter
 from tkinter import filedialog
-import os
-import sys
-import subprocess
-import configparser
 from datetime import date
 import json
 
