@@ -1,5 +1,11 @@
 import tkinter
 from tkinter import filedialog
+from tkinter import PhotoImage
+import os
+import sys
+import subprocess
+import configparser
+from PIL import Image, ImageTk
 from datetime import date
 import json
 
@@ -9,35 +15,11 @@ month = date.today().month
 year = date.today().year
 
 # Fonction pour afficher les mois et l'année
-def printMonthYear(month, year):
-    
-    if month == 1:
-        writtenMonth = "Janvier"
-    elif month == 2:
-        writtenMonth = "Février"
-    elif month == 3:
-        writtenMonth = "Mars"
-    elif month == 4:
-        writtenMonth = "Avril"
-    elif month == 5:
-        writtenMonth = "Mai"
-    elif month == 6:
-        writtenMonth = "Juin"
-    elif month == 7:
-        writtenMonth = "Juillet"
-    elif month == 8:
-        writtenMonth = "Août"
-    elif month == 9:
-        writtenMonth = "Septembre"
-    elif month == 10:
-        writtenMonth = "Octobre"
-    elif month == 11:
-        writtenMonth = "Novembre"
-    else:
-        writtenMonth = "Décembre"
-
-    monthYear = tkinter.Label(calendarFrame,  text = writtenMonth + " " + str(year), font= ("Arial", 22))
-    monthYear.grid(column = 2, row = 0, columnspan = 3)
+def print_Month_Year(month, year):
+    month_Names = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+    written_Month = month_Names[month - 1]
+    month_Year = tkinter.Label(calendarFrame,  text = written_Month + " " + str(year), font= ("Arial", 22))
+    month_Year.grid(column = 2, row = 0, columnspan = 3)
 
 
 # Fonction pour changer les mois
@@ -59,7 +41,7 @@ def switchMonths(direction):
     calendarFrame.destroy()
     calendarFrame = tkinter.Frame(window)
     calendarFrame.grid()
-    printMonthYear(month + direction, year)
+    print_Month_Year(month + direction, year)
     makeButtons()
     monthGenerator(dayMonthStarts(month + direction, year), daysInMonth(month + direction, year))
     month += direction
@@ -225,7 +207,7 @@ window.title("calandar_POGO")
 window.minsize(480, 360)
 window.iconbitmap("calendar.ico")
 
-printMonthYear(month, year)
+print_Month_Year(month, year)
 makeButtons()
 monthGenerator(dayMonthStarts(month, year), daysInMonth(month, year))
 
