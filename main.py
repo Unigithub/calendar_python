@@ -1,16 +1,11 @@
 import tkinter
 from tkinter import filedialog
 from tkinter import PhotoImage
-import os
-import sys
-import subprocess
-import configparser
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 from datetime import date
 import json
 
-
-# défininition des variables
+# définition des variables
 month = date.today().month
 year = date.today().year
 
@@ -18,8 +13,8 @@ year = date.today().year
 def print_Month_Year(month, year):
     month_Names = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
     written_Month = month_Names[month - 1]
-    month_Year = tkinter.Label(calendarFrame,  text = written_Month + " " + str(year), font= ("Arial", 22))
-    month_Year.grid(column = 2, row = 0, columnspan = 3)
+    month_Year = tkinter.Label(calendarFrame, text=written_Month + " " + str(year), font=("Arial", 22))
+    month_Year.grid(column=2, row=0, columnspan=3)
 
 
 # Fonction pour changer les mois
@@ -37,7 +32,7 @@ def switchMonths(direction):
 
     textObjectDict.clear()
     saveDict.clear()
-    
+
     calendarFrame.destroy()
     calendarFrame = tkinter.Frame(window)
     calendarFrame.grid()
@@ -48,74 +43,83 @@ def switchMonths(direction):
 
 # Boutton d'affichage
 def makeButtons():
-    goBack = tkinter.Button(calendarFrame, text = "<", command = lambda : switchMonths(-1))
-    goBack.grid(column = 0, row = 0)
-    goForward = tkinter.Button(calendarFrame, text = ">", command = lambda : switchMonths(1))
-    goForward.grid(column = 6, row = 0)
+    goBack = tkinter.Button(calendarFrame, text="<", command=lambda: switchMonths(-1))
+    goBack.grid(column=0, row=0)
+    goForward = tkinter.Button(calendarFrame, text=">", command=lambda: switchMonths(1))
+    goForward.grid(column=6, row=0)
 
 # Fonction pour calculer si c'est une année bisextile
-def isLeapYear(year):
+def is_Leap_Year(year):
     if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
         return True
     else:
         return False
 
+def on_drop(event, day):
+    file_path = filedialog.askopenfilename()
+    if file_path:
+        img = Image.open(file_path)
+        img = img.resize((100, 100), Image.Resampling.LANCZOS)
+        img = ImageTk.PhotoImage(img)
+        day_Images[day].configure(image=img)
+        day_Images[day].image = img
+
 # Créer le calendrier
 def monthGenerator(startDate, numberOfDays):
-    
     day_Names = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
     # Placer les jours de la semaine en haut du calendrier
     for nameNumber in range(len(day_Names)):
-        names = tkinter.Label(calendarFrame, text = day_Names[nameNumber], fg = "black")
-        names.grid(column = nameNumber, row = 1, sticky = 'nsew')
+        names = tkinter.Label(calendarFrame, text=day_Names[nameNumber], fg="black")
+        names.grid(column=nameNumber, row=1, sticky='nsew')
 
     index = 0
     day = 1
     for row in range(6):
         for column in range(7):
-            if index >= startDate and index <= startDate + numberOfDays-1:
-                # Créer une chat box pour chaque jour - TODO UPDATE pour les images
-                dayFrame = tkinter.Frame(calendarFrame)
+            if index >= startDate and day <= numberOfDays:
+                # Créer un cadre pour chaque jour
+                dayFrame = tkinter.Frame(calendarFrame, width=100, height=100, highlightbackground="black", highlightthickness=1)
+                dayFrame.grid_propagate(False)
+                dayFrame.grid(row=row + 2, column=column, sticky="nsew")
+                dayFrame.columnconfigure(0, weight=1)
+                dayFrame.rowconfigure(1, weight=1)
 
-                # Créer une boîte de texte à l'intérieur de dayframe
-                t = tkinter.Text(dayFrame, width = 15, height = 5)
-                t.grid(row = 1)
+                # Ajouter une étiquette de numéro de jour
+                dayNumber = tkinter.Label(dayFrame, text=day)
+                dayNumber.grid(row=0)
 
-                # Ajouter l'objet texte au dictionnaire de sauvegarde
-                textObjectDict[day] = t 
+                # Ajouter une étiquette pour l'image
+                img_label = tkinter.Label(dayFrame, width=100, height=100)
+                img_label.grid(row=1)
+                img_label.bind("<Button-1>", lambda e, d=day: on_drop(e, d))
 
-                # Modifier le cadre du jour pour qu'il soit correctement formaté
-                dayFrame.grid(row=row + 2, column=column, sticky = 'nsew')
-                dayFrame.columnconfigure(0, weight = 1)
-                dayNumber = tkinter.Label(dayFrame, text = day)
-                dayNumber.grid(row = 0)
+                # Ajouter l'objet image au dictionnaire
+                day_Images[day] = img_label
                 day += 1
             index += 1
     # Créer les boutons pour save & load JSON's
-    loadFrom = tkinter.Button(calendarFrame, text="Load", command = loadFromJSON)
-    saveToButton = tkinter.Button(calendarFrame, text="Save", command = saveToJSON)
+    loadFrom = tkinter.Button(calendarFrame, text="Load", command=loadFromJSON)
+    saveToButton = tkinter.Button(calendarFrame, text="Save", command=saveToJSON)
 
     # Placer les boutons en bas de l'interface graphique
-    loadFrom.grid(row = 8, column = 4)
-    saveToButton.grid(row = 8, column = 2)
-
-
+    loadFrom.grid(row=8, column=4)
+    saveToButton.grid(row=8, column=2)
 
 def saveToJSON():
-    # Sauvegarder dles données textuelles brutes des objets texte 
+    # Sauvegarder les données textuelles brutes des objets texte
     for day in range(len(textObjectDict)):
         saveDict[day] = textObjectDict[day + 1].get("1.0", "end - 1 chars")
 
-    # Demander à l'utilisateur l'emplacement d'un fichier et enregistre un JSON contenant le texte de chaque jour. 
-    fileLocation = filedialog.asksaveasfilename(initialdir = "/", title = "Save JSON to..")
+    # Demander à l'utilisateur l'emplacement d'un fichier et enregistre un JSON contenant le texte de chaque jour.
+    fileLocation = filedialog.asksaveasfilename(initialdir="/", title="Save")
     if fileLocation != '':
         with open(fileLocation, 'w') as jFile:
             json.dump(saveDict, jFile)
 
 def loadFromJSON():
-    # Demander à l'utilisateur d'ouvrir un fichier JSON 
-    fileLocation = filedialog.askopenfilename(initialdir = "/", title = "Select a JSON to open")
+    # Demander à l'utilisateur d'ouvrir un fichier JSON
+    fileLocation = filedialog.askopenfilename(initialdir="/", title="Select a JSON to open")
     if fileLocation != '':
         f = open(fileLocation)
         global saveDict
@@ -124,7 +128,6 @@ def loadFromJSON():
         # Copie les données textuelles sauvegardées dans les objets textuels actuels
         for day in range(len(textObjectDict)):
             textObjectDict[day + 1].insert("1.0", saveDict[str(day)])
-
 
 # Fonction permettant de calculer le jour du début du mois
 def dayMonthStarts(month, year):
@@ -135,22 +138,10 @@ def dayMonthStarts(month, year):
     # Ajouter le jour du mois (toujours 1)
     calculation += 1
     # Tableau pour l'ajout de la clé de mois appropriée
-    if month == 1 or month == 10:
-        calculation += 1
-    elif month == 2 or month == 3 or month == 11:
-        calculation += 4
-    elif month == 5:
-        calculation += 2
-    elif month == 6:
-        calculation += 5
-    elif month == 8:
-        calculation += 3
-    elif month == 9 or month == 12:
-        calculation += 6
-    else:
-        calculation += 0
+    month_Keys = [1, 4, 4, 0, 2, 5, 0, 3, 6, 1, 4, 6]
+    calculation += month_Keys[month - 1]
     # Vérifier si c'est une année bissextile
-    leapYear = isLeapYear(year)
+    leapYear = is_Leap_Year(year)
     # Soustraire 1 s'il s'agit de janvier ou février d'une année bissextile
     if leapYear and (month == 1 or month == 2):
         calculation -= 1
@@ -163,16 +154,16 @@ def dayMonthStarts(month, year):
     return dayOfWeek
 
 # Fonction pour calculer le nombre de jours dans un mois
-def daysInMonth (month, year):
+def daysInMonth(month, year):
     # Tous les mois qui ont 31 jours
-    if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 12 or month == 10:
+    if month in [1, 3, 5, 7, 8, 10, 12]:
         numberDays = 31
     # Tous les mois qui ont 30 jours
-    elif month == 4 or month == 6 or month == 9 or month == 11:
+    elif month in [4, 6, 9, 11]:
         numberDays = 30
     else:
         # Vérifier si l'année est bissextile pour déterminer le nombre de jours du mois de février.
-        leapYear = isLeapYear(year)
+        leapYear = is_Leap_Year(year)
         if leapYear:
             numberDays = 29
         else:
@@ -185,13 +176,16 @@ saveDict = {}
 # Tient les objets textuels chaque jour
 textObjectDict = {}
 
-# Créer the main windows
+# Tient les objets images chaque jour
+day_Images = {}
+
+# Créer la fenêtre principale
 window = tkinter.Tk()
-window.title("Calender")
+window.title("Calendar")
 window.geometry("1000x800")
 
 # centrer le calendrier
-window.columnconfigure(0, weight = 1)
+window.columnconfigure(0, weight=1)
 
 # Créer des frames pour la main root window.
 calendarFrame = tkinter.Frame(window)
@@ -202,8 +196,8 @@ calendarFrame.grid()
 today = date.today()
 
 # general
-window.configure(background = '#424549')
-window.title("calandar_POGO")
+window.configure(background='#424549')
+window.title("calendar_POGO")
 window.minsize(480, 360)
 window.iconbitmap("calendar.ico")
 
@@ -211,5 +205,5 @@ print_Month_Year(month, year)
 makeButtons()
 monthGenerator(dayMonthStarts(month, year), daysInMonth(month, year))
 
-# loap pour faire tourner la fenêtre en continue et la rendre interactive
+# loop pour faire tourner la fenêtre en continu et la rendre interactive
 window.mainloop()
