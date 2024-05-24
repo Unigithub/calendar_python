@@ -1,13 +1,13 @@
 import tkinter
 from tkinter import filedialog
-from tkinter import PhotoImage
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageTk
 from datetime import date
 import json
 
 # définition des variables
 month = date.today().month
 year = date.today().year
+color_case = "#ADD8E6"
 
 # Fonction pour afficher les mois et l'année
 def print_Month_Year(month, year):
@@ -35,7 +35,7 @@ def switchMonths(direction):
 
     calendarFrame.destroy()
     calendarFrame = tkinter.Frame(window)
-    calendarFrame.grid()
+    calendarFrame.grid(padx=10, pady=10)
     print_Month_Year(month + direction, year)
     makeButtons()
     monthGenerator(dayMonthStarts(month + direction, year), daysInMonth(month + direction, year))
@@ -43,9 +43,9 @@ def switchMonths(direction):
 
 # Boutton d'affichage
 def makeButtons():
-    goBack = tkinter.Button(calendarFrame, text="<", command=lambda: switchMonths(-1))
+    goBack = tkinter.Button(calendarFrame, text="<", command=lambda: switchMonths(-1), font=("Arial", 16), width=3)
     goBack.grid(column=0, row=0)
-    goForward = tkinter.Button(calendarFrame, text=">", command=lambda: switchMonths(1))
+    goForward = tkinter.Button(calendarFrame, text=">", command=lambda: switchMonths(1), font=("Arial", 16), width=3)
     goForward.grid(column=6, row=0)
 
 # Fonction pour calculer si c'est une année bisextile
@@ -79,18 +79,18 @@ def monthGenerator(startDate, numberOfDays):
         for column in range(7):
             if index >= startDate and day <= numberOfDays:
                 # Créer un cadre pour chaque jour
-                dayFrame = tkinter.Frame(calendarFrame, width=100, height=100, highlightbackground="black", highlightthickness=1)
+                dayFrame = tkinter.Frame(calendarFrame, width=100, height=100, highlightbackground="black", highlightthickness=1, bg=color_case)
                 dayFrame.grid_propagate(False)
-                dayFrame.grid(row=row + 2, column=column, sticky="nsew")
+                dayFrame.grid(row=row + 2, column=column, sticky="nsew", padx=3, pady=3)
                 dayFrame.columnconfigure(0, weight=1)
                 dayFrame.rowconfigure(1, weight=1)
 
                 # Ajouter une étiquette de numéro de jour
-                dayNumber = tkinter.Label(dayFrame, text=day)
+                dayNumber = tkinter.Label(dayFrame, text=day, bg=color_case)
                 dayNumber.grid(row=0)
 
                 # Ajouter une étiquette pour l'image
-                img_label = tkinter.Label(dayFrame, width=100, height=100)
+                img_label = tkinter.Label(dayFrame, width=100, height=100, bg=color_case)
                 img_label.grid(row=1)
                 img_label.bind("<Button-1>", lambda e, d=day: on_drop(e, d))
 
@@ -189,6 +189,7 @@ window.columnconfigure(0, weight=1)
 
 # Créer des frames pour la main root window.
 calendarFrame = tkinter.Frame(window)
+calendarFrame.grid(padx=10, pady=10)
 
 # Faire apparaître l'objet de la grille
 calendarFrame.grid()
