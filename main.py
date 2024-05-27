@@ -200,7 +200,7 @@ textObjectDict = {}
 day_Images = {}
 
 # Tient les paths des images de chaque jour
-image_Paths = []
+image_Paths = {}
 
 # Créer la fenêtre principale
 window = tkinter.Tk()
@@ -211,7 +211,7 @@ window.geometry("1000x800")
 window.columnconfigure(0, weight=1)
 
 # Créer des frames pour la main root window.
-calendarFrame = tkinter.Frame(window)
+calendarFrame = tkinter.Frame(window, background='#424549')
 calendarFrame.grid(padx=10, pady=10)
 
 # Faire apparaître l'objet de la grille
@@ -220,7 +220,7 @@ calendarFrame.grid()
 today = date.today()
 
 # general
-window.configure(background='#424549')
+window.configure(background='black')
 window.title("calendar_POGO")
 window.minsize(480, 360)
 window.iconbitmap("calendar.ico")
