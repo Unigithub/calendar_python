@@ -3,6 +3,8 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 from datetime import date
 import json
+import os
+
 
 # définition des variables
 month = date.today().month
@@ -43,9 +45,9 @@ def switchMonths(direction):
 
 # Boutton d'affichage
 def makeButtons():
-    goBack = tkinter.Button(calendarFrame, text="<", command=lambda: switchMonths(-1), font=("Arial", 16), width=3)
+    goBack = tkinter.Button(calendarFrame, text="◄", command=lambda: switchMonths(-1), font=("Arial", 16), width=3)
     goBack.grid(column=0, row=0)
-    goForward = tkinter.Button(calendarFrame, text=">", command=lambda: switchMonths(1), font=("Arial", 16), width=3)
+    goForward = tkinter.Button(calendarFrame, text="►", command=lambda: switchMonths(1), font=("Arial", 16), width=3)
     goForward.grid(column=6, row=0)
 
 # Fonction pour calculer si c'est une année bisextile
@@ -63,6 +65,7 @@ def on_drop(event, day):
         img = ImageTk.PhotoImage(img)
         day_Images[day].configure(image=img)
         day_Images[day].image = img
+        image_Paths[day] = file_path
 
 # Créer le calendrier
 def monthGenerator(startDate, numberOfDays):
@@ -111,6 +114,13 @@ def saveToJSON():
     for day in range(len(textObjectDict)):
         saveDict[day] = textObjectDict[day + 1].get("1.0", "end - 1 chars")
 
+    # Ajouter les chemins des images au dictionnaire de sauvegarde
+    for day in range(1, len(day_Images) + 1):
+        if day in image_Paths:
+            saveDict[f'image_{day}'] = image_Paths[day]
+        else:
+            saveDict[f'image_{day}'] = None
+
     # Demander à l'utilisateur l'emplacement d'un fichier et enregistre un JSON contenant le texte de chaque jour.
     fileLocation = filedialog.asksaveasfilename(initialdir="/", title="Save")
     if fileLocation != '':
@@ -125,9 +135,19 @@ def loadFromJSON():
         global saveDict
         saveDict = json.load(f)
 
-        # Copie les données textuelles sauvegardées dans les objets textuels actuels
+        # Copier les données textuelles sauvegardées dans les objets textuels actuels
         for day in range(len(textObjectDict)):
             textObjectDict[day + 1].insert("1.0", saveDict[str(day)])
+
+        # Recharger les images à partir des paths save
+        for day in range(1, len(day_Images) + 1):
+            image_path = saveDict.get(f'image_{day}')
+            if image_path and os.path.exists(image_path):
+                img = Image.open(image_path)
+                img = img.resize((100, 100), Image.Resampling.LANCZOS)
+                img = ImageTk.PhotoImage(img)
+                day_Images[day].configure(image=img)
+                day_Images[day].image = img
 
 # Fonction permettant de calculer le jour du début du mois
 def dayMonthStarts(month, year):
@@ -176,8 +196,11 @@ saveDict = {}
 # Tient les objets textuels chaque jour
 textObjectDict = {}
 
-# Tient les objets images chaque jour
+# Tient les objets images pour chaque jour
 day_Images = {}
+
+# Tient les paths des images de chaque jour
+image_Paths = []
 
 # Créer la fenêtre principale
 window = tkinter.Tk()
